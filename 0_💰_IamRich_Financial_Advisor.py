@@ -33,7 +33,7 @@ def run():
     st.markdown(
         """
         This application is maintained by Doddi Priyambodo (priyambodo@google.com)   
-        v1.0.0
+        v2.0.0
         """
     )
     st.image("image/doddihead.png", width=200)

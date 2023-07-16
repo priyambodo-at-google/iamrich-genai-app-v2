@@ -10,7 +10,7 @@ html_code = """
     """
 with st.sidebar:
    st.success("Choose the menu that you would like to explore above 👆")
-   st.info("app version: IamRich v1.1-STABLE")
+   st.info("app version: IamRich v2.0.0-STABLE")
    st.image("image/doddihead.png", width=200)
    st.error("This application is created and maintained by Doddi Priyambodo")
 
