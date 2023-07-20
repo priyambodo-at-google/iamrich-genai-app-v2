@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explore Alphabet Financial Reports</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #333;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        section {
+            margin-bottom: 40px;
+        }
+
+        footer {
+            background-color: #333;
+            color: #fff;
+            padding: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Explore Alphabet Financial Reports</h1>
+    </header>
+
+    <div class="container">
+        <section>
+            <h2>Sample of financial questions that you can ask</h2>
+            <p>Ask any questions to these downloaded Alphabet Financial Reports. 
+                Here are some of the examples: <br><br>
+                1. What is the net income of Google in 2021? <br>
+                2. Who is the CEO of Google? <br>
+                3. Who are Google competitors? <br>
+                4. Other questions that you want... <br>
+            </p>
+        </section>
+
+        <section>
+            <h2>Search and summarize the answer of your question</h2>
+            <p>Enter your question here: 
+                <!-- Gen App Builder widget bundle -->
+                <script src="https://cloud.google.com/ai/gen-app-builder/client"></script>
+
+                <!-- Search widget element is not visible by default -->
+                <gen-search-widget
+                configId="385e0ae5-9132-4a98-adab-4c37bec87aea"
+                triggerId="searchWidgetTrigger">
+                </gen-search-widget>
+
+                <!-- Element that opens the widget on click. It does not have to be an input -->
+                <input placeholder="Input Here..." id="searchWidgetTrigger" />
+            </p>
+        </section>
+    </div>
+
+    <footer>
+        <p>&copy; IamRich Application. Powered by Google Cloud Generative AI</p>
+    </footer>
+</body>
+</html>
