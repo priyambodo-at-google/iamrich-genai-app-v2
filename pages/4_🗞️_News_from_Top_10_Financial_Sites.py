@@ -65,6 +65,7 @@ def f_open_new_tab():
     #/Users/priyambodo/Desktop/Coding/03.gen-ai-blackbelt-ambassador/01.capstone-project-doddipriyambodo/github-published-apps/iamrich-genai-app-v2/enteprisesearch/alphabet.html     
     local_html_file = "enteprisesearch/news.html"  # Replace this with your local HTML file's path
     internet_url = "https://iamrich.bicarait.com/es/news.html"
+    localhost = "http://localhost/news.html"
     # Convert the local path to an absolute file URL
     local_url = "file://" + os.path.abspath(local_html_file)  
     url = internet_url
@@ -72,4 +73,3 @@ def f_open_new_tab():
   
 if st.button(label="Search your articles in here...", type="primary") :
     f_open_new_tab()
-

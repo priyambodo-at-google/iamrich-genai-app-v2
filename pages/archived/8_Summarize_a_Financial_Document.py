@@ -3,7 +3,7 @@ import pandas as pd
 
 st.header('Multiple File Upload')
 uploaded_files = st.file_uploader('Upload your files',
- accept_multiple_files=True,  accept_multiple_files=True, type=['png', 'pdf'])
+accept_multiple_files=True,  accept_multiple_files=True, type=['png', 'pdf'])
 
 for f in uploaded_files:
     st.write(f)

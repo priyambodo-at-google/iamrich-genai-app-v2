@@ -70,7 +70,7 @@ st.text('Upload/choose your financial documents and ask questions to it')
 uploaded_files = st.file_uploader('Upload your files', accept_multiple_files=True, type=['pdf', 'html'])
 
 # Use Alphabet Docs
-st.write('Or explore these public Alphabet financial documents example as an example:')
+st.write('Or explore these public Alphabet financial documents as an example:')
 show_list_of_alphabet_docs()
 
 # Create a button to upload files
