@@ -1,4 +1,4 @@
-from functools import cache
+#from functools import cache
 from google.cloud import bigquery
 import logging
 from google.oauth2 import service_account
@@ -20,7 +20,7 @@ else:
     client_bq = bigquery.Client(project=config['gcp']['project_id'])
 
 
-@cache
+#@cache
 def list_bq_datasets_in_project():
 
     datasets = list(client_bq.list_datasets(project=config['gcp']['project_id']))  # Make an API request.
@@ -34,7 +34,7 @@ def list_bq_datasets_in_project():
     logger.info(f"Found {len(dataset_list)} Datasets in {config['gcp']['project_id']}")
     return dataset_list
 
-@cache
+#@cache
 def list_bq_tables_in_dataset(dataset):
     tables = list(client_bq.list_tables(dataset))  # Make an API request.
     tables_list = []

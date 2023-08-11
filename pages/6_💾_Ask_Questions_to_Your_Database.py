@@ -80,161 +80,169 @@ llm = get_llm(top_p, top_k, max_tok, temp)
 # retrieve and cache the prompt template
 GOOGLESQL_PROMPT = get_prompt_template()
 
-tab1, tab2, tab3 = st.tabs(["Ask a Question", "Under the hood", "Example Questions"])
+#tab1, tab2, tab3 = st.tabs(["Ask a Question", "Under the hood", "Example Questions"])
+#tab1 = st.tabs(["Ask a Question"])
+#tab1, tab2 = st.tabs(["Ask a Question", "Example Questions"])
 
-with tab1:
-    # Allow the user to view the text field to ask questions, only when a table has been selected
-    dataset_and_table_selected = False
-    if source_dataset_selected == "Please Select":
-        st.info("Please select a Dataset from the side panel (please choose online_store dataset for demo purpose)")
+
+#with tab1:
+# Allow the user to view the text field to ask questions, only when a table has been selected
+dataset_and_table_selected = False
+if source_dataset_selected == "Please Select":
+    st.info("Please select a Dataset from the side panel (please choose bicarait_financial_data dataset for demo purpose)")
+else:
+    if table_selected == "Please Select":
+        st.info("Please select a Table from the side panel (please choose sales_data table for demo purpose)")
     else:
-        if table_selected == "Please Select":
-            st.info("Please select a Table from the side panel (please choose online_client or online_card_transaction table for demo purpose)")
-        else:
-            dataset_and_table_selected = True
-    
-    if 'question' not in st.session_state:
-        st.session_state.question = ''
-    
-    def clear_all():
-        st.cache_data.clear()
+        dataset_and_table_selected = True
+
+if 'question' not in st.session_state:
+    st.session_state.question = ''
+
+def clear_all():
+    st.cache_data.clear()
+    st.session_state.load_state = False
+
+if dataset_and_table_selected:
+    st.subheader("What question would you like to ask?")
+    st.markdown(f"Please note this this question will use the data contained within table: "
+                f"**{table_selected}** to answer the question.")
+    st.text_area("Enter your Prompt:", key="question", height=100, value="", on_change=clear_all)
+    st.text("exaample questions: ")
+    st.markdown("- how much is the biggest sales until now and from which customer?")
+    st.markdown("- what is the top 5 highest sales and from which customer?")
+
+    prompt_question = st.session_state.question
+
+    @st.cache_data(show_spinner=False)
+    #st.cache_data(show_spinner=False)
+
+    def submit_question():
+        engine = get_sql_engine(source_dataset_selected)
+        db = get_sql_db(engine, [table_selected])
+        db_chain = get_db_chain(llm, db)
+        # @title Testing basic questions
+        t0 = time.time()
+        final_prompt = GOOGLESQL_PROMPT.format(input=prompt_question, table_info=table_selected, top_k=2000000)
+        
+        # result = db_chain.run(final_prompt)
+        result = db_chain(final_prompt)
+        st.markdown("**Using the following SQL Query:**")
+        
+        # Print the SQL Query
+        sql_query = result["intermediate_steps"][1]
+        st.success(sql_query)
+        
+        # Print the Answer
+        st.markdown("**Answer:**")
+        answer = result["result"]
+        st.success(answer)
+        #st.text(f"This query took {round(time.time() - t0,1)} seconds")
+        return result
+
+    if "load_state" not in st.session_state:
         st.session_state.load_state = False
 
-    if dataset_and_table_selected:
-        st.subheader("What question would you like to ask?")
-        st.markdown(f"Please note this this question will use the data contained within table: "
-                    f"**{table_selected}** to answer the question.")
-        st.text_area("Enter your Prompt:", key="question", height=100, value="", on_change=clear_all)
-        prompt_question = st.session_state.question
+    submit = True if st.button('Submit Question') else False
 
-        @st.cache_data(show_spinner=False)
-        def submit_question():
-            engine = get_sql_engine(source_dataset_selected)
-            db = get_sql_db(engine, [table_selected])
-            db_chain = get_db_chain(llm, db)
-            # @title Testing basic questions
-            t0 = time.time()
-            final_prompt = GOOGLESQL_PROMPT.format(input=prompt_question, table_info=table_selected, top_k=2000000)
-            
-            # result = db_chain.run(final_prompt)
-            result = db_chain(final_prompt)
-            st.markdown("**Using the following SQL Query:**")
-            
-            # Print the SQL Query
-            sql_query = result["intermediate_steps"][1]
-            st.success(sql_query)
-            
-            # Print the Answer
-            st.markdown("**Answer:**")
-            answer = result["result"]
-            st.success(answer)
-            st.text(f"This query took {round(time.time() - t0,1)} seconds")
-            return result
-
-        if "load_state" not in st.session_state:
-            st.session_state.load_state = False
-
-        submit = True if st.button('Submit Question') else False
-
-        if submit or st.session_state.load_state:
-            st.session_state.load_state = True
-            with st.spinner("Please wait.. AI at work!!"):
+    if submit or st.session_state.load_state:
+        st.session_state.load_state = True
+        with st.spinner("Please wait.. Google GenAI is working now..."):
+            try:
+                result = submit_question()
                 try:
-                    result = submit_question()
-                    try:
-                        sql_query = result["intermediate_steps"][1]
-                        SQLResult = result["intermediate_steps"][3]
-                        columns = extract_columns(sql_query)
-                        df = convert_to_dataframe(SQLResult, columns)
-                        
-                        st.header("Visualize")
-                        table = st.checkbox("Table")
-                        bar_chart = st.checkbox("Bar Chart")
-                        line_chart = st.checkbox("Line Chart")
-                        if table:
-                            st.subheader("Table")
-                            st.dataframe(df,hide_index=True)
-                        if bar_chart:
-                            st.subheader("Bar Chart")
-                            # Get the type of the column
-                            for col in df.columns:
-                                dtype = df[col].dtype
-                                if dtype == 'object':
-                                    x_axis=col
-                                elif dtype == 'int64' or dtype == 'float64':
-                                    y_axis=col
-                                else:
-                                    x_axis = None
-                                    y_axis = None
-                            st.bar_chart(data=df,x=x_axis, y=y_axis)
-                        if line_chart:
-                            st.subheader("Line Chart")
-                            # Get the type of the column
-                            for col in df.columns:
-                                dtype = df[col].dtype
-                                if dtype == 'object':
-                                    x_axis=col
-                                elif dtype == 'int64' or dtype == 'float64':
-                                    y_axis=col
-                                else:
-                                    x_axis = None
-                                    y_axis = None
-                            st.line_chart(data=df,x=x_axis, y=y_axis)
-
-                    except Exception as e:
-                        st.header("Visualize")
-                        st.warning(f"Sorry there are no Vizualisations available for this result")
+                    sql_query = result["intermediate_steps"][1]
+                    SQLResult = result["intermediate_steps"][3]
+                    columns = extract_columns(sql_query)
+                    df = convert_to_dataframe(SQLResult, columns)
+                    
+                    st.header("Visualize")
+                    table = st.checkbox("Table")
+                    bar_chart = st.checkbox("Bar Chart")
+                    line_chart = st.checkbox("Line Chart")
+                    if table:
+                        st.subheader("Table")
+                        st.dataframe(df,hide_index=True)
+                    if bar_chart:
+                        st.subheader("Bar Chart")
+                        # Get the type of the column
+                        for col in df.columns:
+                            dtype = df[col].dtype
+                            if dtype == 'object':
+                                x_axis=col
+                            elif dtype == 'int64' or dtype == 'float64':
+                                y_axis=col
+                            else:
+                                x_axis = None
+                                y_axis = None
+                        st.bar_chart(data=df,x=x_axis, y=y_axis)
+                    if line_chart:
+                        st.subheader("Line Chart")
+                        # Get the type of the column
+                        for col in df.columns:
+                            dtype = df[col].dtype
+                            if dtype == 'object':
+                                x_axis=col
+                            elif dtype == 'int64' or dtype == 'float64':
+                                y_axis=col
+                            else:
+                                x_axis = None
+                                y_axis = None
+                        st.line_chart(data=df,x=x_axis, y=y_axis)
 
                 except Exception as e:
-                    st.error(f"An Error Occurred. Check you're using the correct table!")
+                    st.header("Visualize")
+                    st.warning(f"Sorry there are no Vizualisations available for this result")
+
+            except Exception as e:
+                st.error(f"An Error Occurred. Check you're using the correct table!")
                                
-with tab2:
-    st.subheader("LLM's and Langchain")
-    st.markdown('**The rise of Large Language Models (LLMs) LLMs have revolutionized the way developers build applications.**.'
-                'LLMs are capable of understanding and responding to natural language, which opens up a whole new '
-                'world of possibilities for database communication.')
-    st.markdown(
-        '**LangChain is an orchestration tool that leverages the power of LLMs to transform the way you interact with your database..**.'
-        'With LangChain, you can simply converse with your database in natural language, and LangChain will translate your '
-        'queries into SQL and return the results in real time.')
-    st.markdown(
-        '**This makes it possible to build applications that were once impossible, such as chatbots that can answer '
-        'your questions about your database, or applications that can automatically generate reports based on your data..**.'
-        'Generative AI is the future of database communication, and its available today.')
+# with tab3:
+#     st.subheader("LLM's and Langchain")
+#     st.markdown('**The rise of Large Language Models (LLMs) LLMs have revolutionized the way developers build applications.**.'
+#                 'LLMs are capable of understanding and responding to natural language, which opens up a whole new '
+#                 'world of possibilities for database communication.')
+#     st.markdown(
+#         '**LangChain is an orchestration tool that leverages the power of LLMs to transform the way you interact with your database..**.'
+#         'With LangChain, you can simply converse with your database in natural language, and LangChain will translate your '
+#         'queries into SQL and return the results in real time.')
+#     st.markdown(
+#         '**This makes it possible to build applications that were once impossible, such as chatbots that can answer '
+#         'your questions about your database, or applications that can automatically generate reports based on your data..**.'
+#         'Generative AI is the future of database communication, and its available today.')
 
-    st.markdown("**Here are some specific examples of how LangChain can be used:**")
-    st.markdown("* A chatbot that can answer questions about your database in natural language.")
-    st.markdown("* An application that can automatically generate reports based on your data.")
-    st.markdown("* A tool that can help you debug your database queries.")
-    st.markdown("* A system that can track changes to your database and notify you of any errors.")
+#     st.markdown("**Here are some specific examples of how LangChain can be used:**")
+#     st.markdown("* A chatbot that can answer questions about your database in natural language.")
+#     st.markdown("* An application that can automatically generate reports based on your data.")
+#     st.markdown("* A tool that can help you debug your database queries.")
+#     st.markdown("* A system that can track changes to your database and notify you of any errors.")
 
-    st.markdown("LangChain uses SQLAlchemy to connect to SQL databases, we can use any SQL dialect supported "
-                "by SQLAlchemy, such as MS SQL, MySQL, MariaDB, PostgreSQL, Oracle SQL, BigQuery, or SQLite.")
+#     st.markdown("LangChain uses SQLAlchemy to connect to SQL databases, we can use any SQL dialect supported "
+#                 "by SQLAlchemy, such as MS SQL, MySQL, MariaDB, PostgreSQL, Oracle SQL, BigQuery, or SQLite.")
 
-    st.title("")
-    st.subheader("Considerations")
-    st.markdown("**Here are a few consideration when using LLM for generating SQL queries:**")
-    st.markdown("* LLMs are trained on large datasets of text and code. This allows them to learn the patterns "
-                "of human language and how to generate text that is similar to human-written text")
-    st.markdown("* However, LLMs are not perfect. They can sometimes struggle to understand natural "
-                "language queries that are not well-formed or that do not contain all the necessary information.")
-    st.markdown("* This is especially true when the database is large. A large database can contain a lot of data, "
-                "and it can be difficult for an LLM to identify the relevant information from a natural language query.")
-    st.markdown("**As a result, it is important to be aware of the limitations of LLMs when using them to interact with "
-                "databases.** If you are using an LLM to query a database, it is important to make sure that your "
-                "questions are as informative as possible. You should also be prepared to provide additional "
-                "information if the LLM is unable to understand your query.")
+#     st.title("")
+#     st.subheader("Considerations")
+#     st.markdown("**Here are a few consideration when using LLM for generating SQL queries:**")
+#     st.markdown("* LLMs are trained on large datasets of text and code. This allows them to learn the patterns "
+#                 "of human language and how to generate text that is similar to human-written text")
+#     st.markdown("* However, LLMs are not perfect. They can sometimes struggle to understand natural "
+#                 "language queries that are not well-formed or that do not contain all the necessary information.")
+#     st.markdown("* This is especially true when the database is large. A large database can contain a lot of data, "
+#                 "and it can be difficult for an LLM to identify the relevant information from a natural language query.")
+#     st.markdown("**As a result, it is important to be aware of the limitations of LLMs when using them to interact with "
+#                 "databases.** If you are using an LLM to query a database, it is important to make sure that your "
+#                 "questions are as informative as possible. You should also be prepared to provide additional "
+#                 "information if the LLM is unable to understand your query.")
 
-
-with tab3:
-    st.header("Example Questions")
-    st.markdown("**Here are some example questions** (Note, these will need to be changed based on your specific tables):")
-    st.markdown("**Table:** :blue[stg_client]")
-    st.markdown("* What is the average age of all females?")
-    st.markdown("* What are the top 5 occupations and the count of each? Provide the answer in point format.")
-    st.markdown("* Provide a breakdown of males vs females?")
-    st.markdown("**Table:** :blue[stg_card_transactions]")
-    st.markdown("* Whats the most popular merchant and how many transactions did they handle?")
-    st.markdown("* What date had the most transactions?")
-    st.markdown("* Whats the total number of fraudulent transactions?")
-    st.markdown("* What are the top 5 highest transactions and from which retailer? Provide the answer in point format.")
+# with tab2:
+#     st.header("Example Questions")
+#     st.markdown("**Here are some example questions** (Note, these will need to be changed based on your specific tables):")
+#     st.markdown("**Table:** :blue[stg_client]")
+#     st.markdown("* What is the average age of all females?")
+#     st.markdown("* What are the top 5 occupations and the count of each? Provide the answer in point format.")
+#     st.markdown("* Provide a breakdown of males vs females?")
+#     st.markdown("**Table:** :blue[stg_card_transactions]")
+#     st.markdown("* Whats the most popular merchant and how many transactions did they handle?")
+#     st.markdown("* What date had the most transactions?")
+#     st.markdown("* Whats the total number of fraudulent transactions?")
+#     st.markdown("* What are the top 5 highest transactions and from which retailer? Provide the answer in point format.")

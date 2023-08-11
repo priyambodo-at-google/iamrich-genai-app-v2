@@ -60,16 +60,9 @@ html_code = """
 """
 st.markdown(html_code, unsafe_allow_html=True)
 
-def f_open_new_tab():
-    # Get the path to the local HTML file relative to the current script
-    #/Users/priyambodo/Desktop/Coding/03.gen-ai-blackbelt-ambassador/01.capstone-project-doddipriyambodo/github-published-apps/iamrich-genai-app-v2/enteprisesearch/alphabet.html     
-    local_html_file = "enteprisesearch/news.html"  # Replace this with your local HTML file's path
-    internet_url = "https://iamrich.bicarait.com/es/news.html"
-    localhost = "http://localhost/news.html"
-    # Convert the local path to an absolute file URL
-    local_url = "file://" + os.path.abspath(local_html_file)  
-    url = internet_url
-    webbrowser.open_new_tab(url) 
-  
-if st.button(label="Search your articles in here...", type="primary") :
-    f_open_new_tab()
+def create_hyperlink_button(url, text):
+  button_html = f'<a href="{url}" target="_blank">{text}</a>'
+  return st.markdown(button_html, unsafe_allow_html=True)
+url = "https://enterprisesearch-app-rzmyhdhywa-uc.a.run.app/news.html"
+text = "Search your financial articles in here..."
+create_hyperlink_button(url, text)

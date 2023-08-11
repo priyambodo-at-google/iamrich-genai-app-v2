@@ -1,6 +1,6 @@
 import logging
 import os
-from functools import cache
+#from functools import cache
 
 import yaml
 
@@ -29,7 +29,7 @@ def load_config_file(config_file='config.yml'):
         return config
 
 
-@cache
+#@cache
 def get_config():
     config = os.getenv('CONFIG_FILE', 'config.yml')
     return load_config_file(config)

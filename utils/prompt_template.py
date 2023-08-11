@@ -1,9 +1,8 @@
-from functools import cache
-
+#from functools import cache
 from langchain.prompts.prompt import PromptTemplate
 
 
-@cache
+#@cache
 def get_prompt_template():
     _googlesql_prompt = """You are a GoogleSQL expert. Given an input question, first create a syntactically correct GoogleSQL query to run, then look at the results of the query and return the answer to the input question.
     Unless the user specifies in the question a specific number of examples to obtain, query for at most {top_k} results using the LIMIT clause as per GoogleSQL. You can order the results to return the most informative data in the database.
