@@ -167,5 +167,6 @@ __pycache__
 .vscode
 .secret
 .guide 
+.gitignore
 apikey.json
 sh*
